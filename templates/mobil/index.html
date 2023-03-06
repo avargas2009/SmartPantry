@@ -1,0 +1,79 @@
+{% extends 'basemovil.html' %}
+
+{% block content %}
+<section>
+    <section class="hero is-medium is-primary is-bold">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">Be part of our family</h1>
+                <h2 class="subtitle">
+                    Use your google account to register or sign up
+                </h2>
+            </div>
+        </div>
+    </section>
+    <section>
+        <div class="box has-background-white-ter">
+            <div id="firebaseui-auth-container"></div>
+            <div id="loader">Loading...</div>
+        </div>
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+
+<!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.2.3/firebase-app.js"></script>
+<!-- Add Firebase products that you want to use -->
+<script src="https://www.gstatic.com/firebasejs/7.2.3/firebase-auth.js"></script>
+<script>
+    var firebaseConfig = {
+        apiKey: "AIzaSyDqwypU_3K7VGBy4sRjrq3R-p7ukzC2t4I",
+        authDomain: "potus-65895.firebaseapp.com",
+        databaseURL: "https://potus-65895.firebaseio.com",
+        projectId: "potus-65895",
+        storageBucket: "potus-65895.appspot.com",
+        messagingSenderId: "954457323132",
+        appId: "1:954457323132:web:960892535b65785f6a3bf9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+
+    // Initialize the FirebaseUI Widget using Firebase.
+    var ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+    var uiConfig = {
+        callbacks: {
+            signInSuccessWithAuthResult: function (authResult, redirectUrl) {
+                console.log(authResult);
+                console.log(redirectUrl);
+                // User successfully signed in.
+                // Return type determines whether we continue the redirect automatically
+                // or whether we leave that to developer to handle.
+                return true;
+            },
+            uiShown: function () {
+                // The widget is rendered.
+                // Hide the loader.
+                document.getElementById('loader').style.display = 'none';
+            }
+        },
+        // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
+        signInFlow: 'popup',
+        signInSuccessUrl: '{{url_for('mobil.homemobil')}}',
+        signInOptions: [
+            // Leave the lines as is for the providers you want to offer your users.
+            firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        ],
+        // Terms of service url.
+        tosUrl: '<your-tos-url>',
+        // Privacy policy url.
+        privacyPolicyUrl: '<your-privacy-policy-url>'
+    };
+
+    // The start method will wait until the DOM is loaded.
+    ui.start('#firebaseui-auth-container', uiConfig);
+</script>
+{% endblock %}

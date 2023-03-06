@@ -1,0 +1,384 @@
+{% extends 'basemovil.html' %}
+
+{% block content %}
+<style>
+    .eaqui {
+
+        background: rgb(186, 236, 73);
+        background: linear-gradient(93deg, rgba(186, 236, 73, 1) 0%, rgba(9, 121, 73, 1) 0%, rgba(0, 212, 255, 1) 100%);
+    }
+
+
+    progress {
+        width: 150px;
+        height: 130px;
+        margin: 10px auto;
+        display: block;
+        /* Important Thing */
+        -webkit-appearance: none;
+        border: black;
+        transform: rotate(-90deg);
+    }
+
+    /* All good till now. Now we'll style the background */
+    progress::-webkit-progress-bar {
+        background: white;
+        border-radius: 0px;
+        padding: 0px;
+        box-shadow: 2px 0px 0px 2px rgba(19, 18, 18, 0.883);
+    }
+
+    /* Now the value part */
+    progress::-webkit-progress-value {
+        border-radius: 0px;
+        box-shadow: inset 2px 0px 0px 2px rgba(19, 18, 18, 0.883);
+        background: linear-gradient(93deg, rgba(186, 236, 73, 1) 0%, rgba(9, 121, 73, 1) 0%, rgba(0, 212, 255, 1) 100%);
+
+        /* Looks great, now animating it */
+        background-size: 25px 14px, 100% 100%, 100% 100%;
+        -webkit-animation: move 5s linear 0 infinite;
+    }
+
+    /* That's it! Now let's try creating a new stripe pattern and animate it using animation and keyframes properties  */
+
+    @-webkit-keyframes move {
+        0% {
+            background-position: 0px 0px, 0 0, 0 0
+        }
+
+        100% {
+            background-position: -100px 0px, 0 0, 0 0
+        }
+    }
+
+    /* Prefix-free was creating issues with the animation */
+</style>
+
+<section class="is-block">
+    <div class="columns box eaqui ">
+        <div class="column is-1">
+            <figure class="image is-48x48">
+                <img class="is-rounded" id="imageitem" src="" alt="">
+            </figure>
+        </div>
+        <div class="column is-11">
+            <h1 class="has-text-white has-text-centered">Welcome:</h1>
+            <h2 class="has-text-white has-text-centered" id="username"></h2>
+        </div>
+
+
+    </div>
+</section>
+<section class="is-block">
+    <div class="box">
+        <h1>List of Devices</h1>
+
+        <section>
+
+            <div class="box">
+                <button class="button is-info is-fullwidth" id="showModal">
+                    <span>ADD NEW DEVICE</span>
+                    <span class="icon is-small">
+                        <i class="fa fa-plus"></i>
+                    </span>
+
+                </button>
+            </div>
+
+            <div id="listOfPantrys" class="columns">
+
+            </div>
+
+        </section>
+    </div>
+</section>
+
+<div id="modal-ter" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Add new pantry</p>
+            <button class="delete modal-closes" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="content">
+                <h6 class="suvtitle is-6">Note: The pantry needs to be power on and connected to internet, please check
+                    the installation manual for more info. </h6>
+
+                <div class="field">
+                    <label class="label">Enter device code</label>
+                    <div class="control">
+                        <input id="pantryID" class="input is-rounded is-fullwidth" type="text" placeholder="">
+                    </div>
+                </div>
+                <hr>
+                <div class="field">
+                    <label class="label">Name the device</label>
+                    <div class="control">
+                        <input id="pantryName" class="input is-rounded is-fullwidth" type="text" placeholder="">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Product</label>
+                    <div class="control">
+                        <div class="select is-rounded is-fullwidth">
+                            <select id="nom_prod">
+
+
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <footer class="modal-card-foot">
+            <button id="RegisterDevice" class="button is-success">Register Device</button>
+        </footer>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+<!-- Firebase App (the core Firebase SDK) is always required and must be listed first 
+-->
+<script src="https://www.gstatic.com/firebasejs/7.2.3/firebase-app.js"></script>
+<!-- Add Firebase products that you want to use -->
+<script src="https://www.gstatic.com/firebasejs/7.2.3/firebase-auth.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
+
+
+<script>
+    var firebaseConfig = {
+        apiKey: "AIzaSyDqwypU_3K7VGBy4sRjrq3R-p7ukzC2t4I",
+        authDomain: "potus-65895.firebaseapp.com",
+        databaseURL: "https://potus-65895.firebaseio.com",
+        projectId: "potus-65895",
+        storageBucket: "potus-65895.appspot.com",
+        messagingSenderId: "954457323132",
+        appId: "1:954457323132:web:960892535b65785f6a3bf9"
+    };
+
+    var displayName = "";
+    var email = "";
+    var emailVerified = "";
+    var photoURL = "";
+    var isAnonymous = "";
+    var uid = "";
+    var providerData = "";
+    var cantidadEmbases = 1
+
+    firebase.initializeApp(firebaseConfig);
+
+    var database = firebase.database();
+    var firebaseProductosCollection = database.ref('Productos/');
+    var firebaseSubscriptionINFO = database.ref('Subscription');
+    var firebaseContainersCollection = database.ref('Containers');
+
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+            //console.log(user);
+            // User is signed in.
+            displayName = user.displayName;
+            email = user.email;
+            emailVerified = user.emailVerified;
+            photoURL = user.photoURL;
+            isAnonymous = user.isAnonymous;
+            uid = user.uid;
+            providerData = user.providerData;
+
+            $('#username').html(displayName);
+            document.getElementById("imageitem").src = photoURL;
+            //console.log(uid);
+
+            var firebaseSubscriptionsDatas = database.ref('Subscription/' + uid);
+            //console.log('Subscription/' + uid);
+
+            firebaseSubscriptionsDatas.on('value', function (pantrys) {
+                var allPantrysHtml = "";
+
+                Pantryss = pantrys.val();
+                //console.log(Pantryss);
+
+                for (let index in Pantryss) {
+                    var interm = Pantryss[index];
+                    //console.log(interm);
+
+                    var namex = "";
+                    var volx = 0;
+                    var prodx = "";
+                    var estadox = "";
+                    var realtimeReads = database.ref('Containers/' + interm.PantryInfo.Serial);
+                    realtimeReads.once('value', function (pantrydata) {
+                        console.log(pantrydata.val());
+                        volx = pantrydata.val().Volumen;
+                        namex = pantrydata.val().Name;
+                        estadox = pantrydata.val().Status;
+                    });
+
+                    var realtimeReads2 = database.ref('Productos/' + interm.ProductInfo.Serial);
+                    realtimeReads2.once('value', function (proructodata) {
+                        console.log(proructodata.val());
+                        prodx = proructodata.val().Nombre;
+                    });
+
+
+                    var individualPantryHtml = `
+            <div id="`+ interm.ID + `" class="column is-one-quarter">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">
+                                `+ namex + `
+                            </p>
+
+                        </header>
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="columns ">
+                                    <div class="column is-centered">
+                                        <span class="tag is-info is-light is-large ">`+ prodx + `</span>
+                                    </div>
+                                </div>
+                                <div class="columns">
+                                    <div class="column">
+                                        <progress 
+                                        max=100
+                                        min=0
+                                        value=`+ volx + `
+                                        />
+                                    </div>
+                                </div>
+                                <div class="columns ">
+                                    <div class="column is-centered">
+                                        <span class="tag is-info is-light is-medium">%`+ volx + `</span>
+                                    </div>
+                                </div>
+							</div>
+                            
+                        </div>
+                        <footer class="card-footer">
+                            <a id=`+ interm.PantryInfo.Serial + ` href="#" onclick="enable_disable(this.id)" class="card-footer-item">On/Off</a>
+                            <a id=`+ interm.ID + ` href="#" onclick="edit_subs(this.id)" class="card-footer-item">Edit</a>
+                            <a id=`+ interm.ID + ` href="#" onclick="deletes(this.id)" class="card-footer-item">Delete</a>
+                        </footer>
+                    </div>
+                </div>`;
+
+
+                    allPantrysHtml = allPantrysHtml + individualPantryHtml;
+
+
+                }
+
+                $('#listOfPantrys').html(allPantrysHtml);
+
+            });
+        } else {
+            // User is signed out.
+            // ...
+        }
+    });
+    //------------------------------------------------------------------------
+
+
+
+    //------------------------------------------------------------------------
+
+    firebaseProductosCollection.on('value', function (productos) {
+        var allProductosHtml = "";
+        productos.forEach(function (firebaseProductosCollection) {
+            Productoss = firebaseProductosCollection.val();
+            var individualProductoHtml = `<option value="` + Productoss.Serial + `">` + Productoss.Nombre + `</option>`
+            allProductosHtml = allProductosHtml + individualProductoHtml;
+        });
+
+        $('#nom_prod').html(allProductosHtml);
+
+    });
+</script>
+
+<script>
+    $("#showModal").click(function () {
+        $(".modal").addClass("is-active");
+    });
+
+    $(".modal-closes").click(function () {
+        $(".modal").removeClass("is-active");
+    });
+
+    $("#RegisterDevice").click(function () {
+        $(".modal").removeClass("is-active");
+        var pantry_iden = document.getElementById("pantryID").value;
+        var pantry_name = document.getElementById("pantryName").value;
+
+        var firebaseContainerINFO = database.ref('Containers/' + pantry_iden);
+
+        var updates = {};
+        updates['/Status'] = "ENABLE";
+        updates['/Name'] = pantry_name;
+
+        firebaseContainerINFO.update(updates);
+
+        console.log(pantry_iden);
+
+        //---------------------------------------------------------------------------
+        var productINFO = null;
+        var pantryINFO = null;
+
+        firebaseProductosCollection.orderByKey().equalTo(document.getElementById("nom_prod").value).on("child_added", function (snapshot) {
+            productINFO = snapshot.val();
+            console.log(snapshot.val());
+        });
+
+        firebaseContainersCollection.orderByKey().equalTo(pantry_iden).on("child_added", function (snapshot) {
+            pantryINFO = snapshot.val();
+            console.log(snapshot.val());
+
+            var newSubscriptionKey = firebase.database().ref().child('Subscription').push().key;
+            console.log(newSubscriptionKey);
+            var Subscription = {
+                ID: newSubscriptionKey,
+                UserID: uid,
+                PantryInfo: pantryINFO,
+                ProductInfo: productINFO
+            };
+            console.log(Subscription);
+
+            // Write the new post's data simultaneously in the posts list and the user's post list.
+            var updates = {};
+            updates['/Subscription/' + uid + '/' + newSubscriptionKey] = Subscription;
+
+            return firebase.database().ref().update(updates);
+        });
+
+
+
+    });
+
+    function deletes(serial) {
+        //console.log('Subscription/' + uid + '/' + serial);
+        var toDelete = database.ref('Subscription/' + uid + '/' + serial).remove();
+
+    }
+
+    function enable_disable(serial) {
+        var updates = {};
+        var ActualStatus = firebase.database().ref('Containers/' + serial);
+        ActualStatus.once('value', function (snapshot) {
+            //console.log(snapshot.val());
+            if (snapshot.val().Status === "ENABLE") {
+                updates['/Containers/' + serial + '/Status'] = "DISABLE";
+            } else {
+                updates['/Containers/' + serial + '/Status'] = "ENABLE";
+            }
+
+            return firebase.database().ref().update(updates);
+        });
+    }
+</script>
+{% endblock %}

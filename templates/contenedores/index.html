@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+
+    <h1 class="title">
+        Containers
+    </h1>
+    <p class="subtitle">
+        Create, Update and Delete Containers
+    </p>
+
+    <div class=" box">
+        <h2>Create new container</h2>
+        <hr class="navbar-divider">
+        <form action="">
+            <div class="field">
+                <label class="label">STATUS</label>
+                <div class="control">
+                    <div class="select is-rounded is-fullwidth">
+                        <select id="statusselect">
+                            <option>DISABLE</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">CAPACITY(LB)</label>
+                <div class="control">
+                    <div class="select is-rounded is-fullwidth">
+                        <select id="capacityselect">
+                            <option>5</option>
+                            <option>10</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field is-grouped">
+                <div class="control">
+                    <button class="button is-fullwidth is-success" onclick="AddContainer()">Create new
+                        container</button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+
+
+</section>
+<section>
+    <div class="container box">
+        <div class="table-container">
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                <thead>
+                    <tr>
+                        <th><abbr title="ID_pantry">ID</abbr></th>
+                        <th>Status</th>
+                        <th>Capacity</th>
+                        <th>Options</th>
+                    </tr>
+                </thead>
+                <tbody id="contenido" height="200px">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+
+<!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+
+<!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
+
+<!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-analytics.js"></script>
+
+<!-- Add Firebase products that you want to use -->
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
+
+
+
+<script>
+    var firebaseConfig = {
+        apiKey: "AIzaSyDqwypU_3K7VGBy4sRjrq3R-p7ukzC2t4I",
+        authDomain: "potus-65895.firebaseapp.com",
+        databaseURL: "https://potus-65895.firebaseio.com",
+        projectId: "potus-65895",
+        storageBucket: "potus-65895.appspot.com",
+        messagingSenderId: "954457323132",
+        appId: "1:954457323132:web:960892535b65785f6a3bf9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
+    var firebaseContainersCollection = database.ref('Containers/');
+
+    function Delete(yuca) {
+        var toDelete = database.ref('Containers/' + yuca).remove();
+    }
+
+    function AddContainer() {
+        var newContainerKey = firebase.database().ref().child('Containers').push().key;
+        console.log(newContainerKey);
+        var Containerss = {
+            Serial: newContainerKey,
+            Capacity: document.getElementById("capacityselect").value,
+            Status: document.getElementById("statusselect").value
+        };
+
+        // Write the new post's data simultaneously in the posts list and the user's post list.
+        var updates = {};
+        updates['/Containers/' + newContainerKey] = Containerss;
+
+        return firebase.database().ref().update(updates);
+    }
+
+    function UpdateContainer(serial) {
+        var updates = {};
+        var ActualStatus = firebase.database().ref('Containers/' + serial);
+        ActualStatus.once('value', function (snapshot) {
+            console.log(snapshot.val());
+            if (snapshot.val().Status === "ENABLE") {
+                updates['/Containers/' + serial + '/Status'] = "DISABLE";
+            } else {
+                updates['/Containers/' + serial + '/Status'] = "ENABLE";
+            }
+
+            return firebase.database().ref().update(updates);
+        });
+    }
+
+    firebaseContainersCollection.on('value', function (containers) {
+        var allContainerssHtml = "";
+        containers.forEach(function (firebaseContainersCollection) {
+            Containerss = firebaseContainersCollection.val();
+            var individualContainerHtml =
+                `<tr><th> <a class="button" href="{{url_for('contenedores.vistaContenedor')}}?id=` +
+                Containerss.Serial +
+                `" > ` + Containerss
+                .Serial +
+                `</a>  </th> <th>  ` + Containerss.Status + ` </th> 
+                                <th>  ` + Containerss.Capacity + ` </th> 
+                        <th><a id=` + Containerss.Serial + ` class = "button is-warning" onclick="UpdateContainer(this.id)" href = "" > Status Change </a> 
+                            <a id=` + Containerss.Serial + ` onclick="Delete(this.id)" class = "button is-danger" href = "" > Delete </a> 
+                            <a class = "button is-link" href = "" > Download Script </a> </th> </tr>`
+            //add the individual order html to the end of the allOrdersHtml list
+            allContainerssHtml = allContainerssHtml + individualContainerHtml;
+        });
+
+        //actaull put the html on the page inside the element with the id PreviousOrders
+        $('#contenido').html(allContainerssHtml);
+
+        //note: an alternative approach would be to create a hidden html element for one order on the page, duplicate it in the forEach loop, unhide it, and replace the information, and add it back. 
+    });
+</script>
+{% endblock %}

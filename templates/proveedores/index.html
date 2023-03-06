@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+
+    <h1 class="title">
+        Productos
+    </h1>
+    <p class="subtitle">
+        Create, Update and Delete products
+    </p>
+
+    <div class=" box">
+        <h2>Create new product</h2>
+        <hr class="navbar-divider">
+        <form action="">
+            <div class="field">
+                <label class="label">NOMBRE</label>
+                <div class="control">
+                    <input id="nombre_prod" class="input is-rounded is-fullwidth" type="text"
+                        placeholder="Nombre del producto">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">MEDIDA</label>
+                <div class="control">
+                    <div class="select is-rounded is-fullwidth">
+                        <select id="medida_prod">
+                            <option>LIBRAS</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">CANTIDAD</label>
+                <div class="control">
+                    <input id="cantidad_prod" class="input is-rounded is-fullwidth" type="number"
+                        placeholder="Cantidad del producto en numeros">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">COLOR BASE</label>
+                <div class="control">
+                    <div class="select is-rounded is-fullwidth">
+                        <select id="color_prod">
+                            <option>ROJO</option>
+                            <option>MARRON</option>
+                            <option>BLANCO</option>
+                            <option>AMARILLO</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field is-grouped">
+                <div class="control">
+                    <button class="button is-fullwidth is-success" onclick="AddProduct()">Create new
+                        product</button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+
+
+</section>
+<section>
+    <div class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Enter the data requested</p>
+                <button class="delete modal-close" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+                <div class="field">
+                    <label class="label">Quantity(POUNDS)</label>
+                    <div class="control">
+                        <input id="cantidad_prod" class="input is-rounded is-fullwidth" type="number"
+                            placeholder="Cantidad del producto en numeros">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Provider</label>
+                    <div class="control">
+                        <div class="select is-rounded is-fullwidth">
+                            <select id="color_prod">
+                                <option>PRO A</option>
+                                <option>PRO B</option>
+                                <option>PRO C</option>
+                                <option>PRO D</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <input type="text" name="Code" id="idcode" hidden>
+            </section>
+            <footer class="modal-card-foot">
+                <button id="RegisterDevice" class="button is-success">Receive</button>
+
+            </footer>
+        </div>
+    </div>
+
+    <div class="container box">
+        <div class="table-container">
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                <thead>
+                    <tr>
+                        <th><abbr title="ID_producto">ID</abbr></th>
+                        <th>Name</th>
+                        <th>Medida</th>
+                        <th>Availability</th>
+                        <th>Base Color</th>
+                        <th>Options</th>
+                    </tr>
+                </thead>
+                <tbody id="contenido" height="200px">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</section>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+
+<!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+
+<!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
+
+<!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-analytics.js"></script>
+
+<!-- Add Firebase products that you want to use -->
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
+
+
+
+<script>
+    console.log("ANTES DE FIREBASE");
+    var firebaseConfig = {
+        apiKey: "AIzaSyDqwypU_3K7VGBy4sRjrq3R-p7ukzC2t4I",
+        authDomain: "potus-65895.firebaseapp.com",
+        databaseURL: "https://potus-65895.firebaseio.com",
+        projectId: "potus-65895",
+        storageBucket: "potus-65895.appspot.com",
+        messagingSenderId: "954457323132",
+        appId: "1:954457323132:web:960892535b65785f6a3bf9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
+    var firebaseProductosCollection = database.ref('Productos/');
+
+    function Delete(yuca) {
+        var toDelete = database.ref('Productos/' + yuca).remove();
+    }
+
+    function AddProduct() {
+
+
+
+        var newProductKey = firebase.database().ref().child('Productos').push().key;
+        console.log(newProductKey);
+        var Producto = {
+            Serial: newProductKey,
+            Nombre: document.getElementById("nombre_prod").value,
+            Medida: document.getElementById("medida_prod").value,
+            Cantidad: document.getElementById("cantidad_prod").value,
+            Color: document.getElementById("color_prod").value
+        };
+        console.log(Producto);
+
+        // Write the new post's data simultaneously in the posts list and the user's post list.
+        var updates = {};
+        updates['/Productos/' + newProductKey] = Producto;
+
+        return firebase.database().ref().update(updates);
+    }
+
+    firebaseProductosCollection.on('value', function (productos) {
+        var allProductosHtml = "";
+        productos.forEach(function (firebaseProductosCollection) {
+            Productoss = firebaseProductosCollection.val();
+            var individualProductoHtml =
+                `<tr>
+            <th> <a class="button" href="/vistaProducto.html?id=` + Productoss.Serial +
+                `" > ` + Productoss.Serial + `</a>  </th> 
+            <th>  ` + Productoss.Nombre + ` </th> 
+            <th>  ` + Productoss.Medida + ` </th> 
+            <th>  ` + Productoss.Cantidad + ` </th> 
+            <th>  ` + Productoss.Color + ` </th> 
+            <th> <button class="button is-info is-fullwidth" onclick="OpenModal(this.id)" id="showModal">
+                        <span>Receive Product </span>
+                        <span class="icon is-small">
+                            <i class="fa fa-plus"></i>
+                        </span>
+                    </button> - - - 
+                <a id=` + Productoss.Serial + ` onclick="Delete(this.id)" class = "button is-fullwidth is-danger" href = "" > Delete </a> 
+                     </th> </tr>`
+            //add the individual order html to the end of the allOrdersHtml list
+            allProductosHtml = allProductosHtml + individualProductoHtml;
+        });
+
+        //actaull put the html on the page inside the element with the id PreviousOrders
+        $('#contenido').html(allProductosHtml);
+
+        //note: an alternative approach would be to create a hidden html element for one order on the page, duplicate it in the forEach loop, unhide it, and replace the information, and add it back. 
+    });
+</script>
+
+<script>
+    function OpenModal(yuca) {
+        console.log("OPEN MODAL");
+        $(".modal").addClass("is-active");
+    }
+
+    $(".modal-close").click(function () {
+        console.log("CLOSE MODAL");
+        $(".modal").removeClass("is-active");
+    });
+
+    $("#RegisterDevice").click(function () {
+        $(".modal").removeClass("is-active");
+        var pantry_iden = document.getElementById("pantryID").value;
+
+        var firebaseContainerINFO = database.ref('Containers/' + pantry_iden);
+        var updates = {};
+        updates['/Status'] = "ENABLE";
+
+        firebaseContainerINFO.update(updates);
+
+        console.log(pantry_iden);
+    });
+</script>
+
+{% endblock %}

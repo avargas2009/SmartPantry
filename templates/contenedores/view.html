@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+
+    <h1 class="title">
+        Container Detail
+    </h1>
+    <p class="subtitle">
+        Details about the current container
+    </p>
+
+    <div class="box">
+        <h2>Client</h2>
+        <hr class="navbar-divider">
+
+
+    </div>
+
+    <div id="ContainerState" class="box">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    <p class="heading">Food Color</p>
+                    <div id="actualcolor" class="card title">
+                        <br>
+                    </div>
+                </div>
+            </div>
+            <div class="level-item has-text-centered">
+                <div>
+                    <p class="heading">Last Volume</p>
+                    <p id="volume" class="title"></p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered">
+                <div>
+                    <p class="heading">Fill Status</p>
+                    <p id="fillstatus" class="title"></p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered">
+                <div>
+                    <p class="heading">Work Status</p>
+                    <p id="workstatus" class="title"></p>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class=" box">
+        <h2>Recent History of the container</h2>
+        <hr class="navbar-divider">
+
+        <section>
+            <div class="container box">
+                <div class="table-container">
+                    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contenido">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+    {% endblock %}
+
+    {% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+
+    <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
+
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-analytics.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-database.js"></script>
+
+
+
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyDqwypU_3K7VGBy4sRjrq3R-p7ukzC2t4I",
+            authDomain: "potus-65895.firebaseapp.com",
+            databaseURL: "https://potus-65895.firebaseio.com",
+            projectId: "potus-65895",
+            storageBucket: "potus-65895.appspot.com",
+            messagingSenderId: "954457323132",
+            appId: "1:954457323132:web:960892535b65785f6a3bf9"
+        };
+
+        function getUrlVars() {
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
+                vars[key] = value;
+            });
+            return vars;
+        }
+
+        firebase.initializeApp(firebaseConfig);
+        var database = firebase.database();
+
+        var firebaseContainerINFO = database.ref('Containers/' + getUrlVars()["id"]);
+
+        firebaseContainerINFO.on('value', function (info) {
+
+            var workstatus = info.val().Status;
+            var fillstatus = info.val().Content;
+            var volume = info.val().Volumen;
+            var r = info.val().R;
+            var g = info.val().G;
+            var b = info.val().B;
+
+            var htmlcolor = 'background-color: rgb(' + r + ',' + g + ',' + b + ');'
+
+
+
+            $('#workstatus').html(workstatus);
+            $('#fillstatus').html(fillstatus);
+            $('#volume').html(volume);
+            $('#actualcolor').attr('style', htmlcolor);
+
+
+            if (workstatus === 'ENABLE') {
+                $('#workstatus').addClass('has-text-success');
+            } else {
+                $('#workstatus').addClass('has-text-danger');
+            }
+
+            if (fillstatus === 'UpperLimit') {
+                $('#fillstatus').addClass('has-text-success');
+                $('#volume').addClass('has-text-success');
+            } else {
+                $('#fillstatus').addClass('has-text-danger');
+                $('#volume').addClass('has-text-danger');
+            }
+
+        });
+
+
+        var firebaseLogsCollection = database.ref('Log/' + getUrlVars()["id"]);
+
+        firebaseLogsCollection.on('value', function (logs) {
+            var allContainerssHtml = "";
+            logs.forEach(function (firebaseLogsCollection) {
+                Logs = firebaseLogsCollection.val();
+                var individualContainerHtml = `<tr><th> ` + Logs.Status + ` </th> <th>  ` + Logs
+                    .Time + ` </th> </tr>`
+                allContainerssHtml = allContainerssHtml + individualContainerHtml;
+            });
+
+            $('#contenido').html(allContainerssHtml);
+
+        });
+    </script>
+    {% endblock %}
